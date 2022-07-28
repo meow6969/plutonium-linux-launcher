@@ -116,3 +116,4 @@ dmypy.json
 .idea/
 .idea/vcs.xml
 preferences.json
+plutonium.dxvk-cache

@@ -86,8 +86,9 @@ class launcher:
 
     def run_game(self):
         # uses wine64 instead of wine because wine64 seems to work better
-        os.system(f"{self.prefix.ENV_VARS} wine64 {shlex.quote(f'{self.prefix.INSTALL_LOCATION}/plutonium.exe')}")
-        # print(f"{self.prefix.ENV_VARS} wine64 --version")
+        # removes the first 28 characters because we need the WINEDLLOVERRIDES variable only for installing the prefix
+        os.system(f"{self.prefix.ENV_VARS[28:]} wine64 {shlex.quote(f'{self.prefix.INSTALL_LOCATION}/plutonium.exe')}")
+        # print(f"{self.prefix.ENV_VARS[28:]} wine64 --version")
         # os.system(f"{self.prefix.ENV_VARS} wine64 --version")
 
     def select_dxvk_version(self):
