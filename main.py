@@ -85,10 +85,10 @@ class launcher:
         funcs.update_config({}, install_location=install_path, prefix_complete="N", dxvk_version="latest")
 
     def run_game(self):
-        # uses wine64 instead of wine because wine64 seems to work better
-        # os.system(f"{self.prefix.ENV_VARS} wine64 {shlex.quote(f'{self.prefix.INSTALL_LOCATION}/plutonium.exe')}")
-        print(f"{self.prefix.ENV_VARS} wine64 --version")
-        os.system(f"{self.prefix.ENV_VARS} wine64 --version")
+        uses wine64 instead of wine because wine64 seems to work better
+        os.system(f"{self.prefix.ENV_VARS} wine64 {shlex.quote(f'{self.prefix.INSTALL_LOCATION}/plutonium.exe')}")
+        # print(f"{self.prefix.ENV_VARS} wine64 --version")
+        # os.system(f"{self.prefix.ENV_VARS} wine64 --version")
 
     def select_dxvk_version(self):
         options = funcs.get_github_releases("https://api.github.com/repos/doitsujin/dxvk/releases?per_page=100",
