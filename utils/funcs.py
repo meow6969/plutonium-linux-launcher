@@ -31,7 +31,8 @@ def check_dxvk_version(install_path, return_dxvk_info=False):
             write = True
             replace_dxvk = True
 
-    if write:  # if should write to the file writes to it
+    if write:  # if we should update the saved DXVK version information
+               # i literally first wrote "if should write to the file writes to it" what does that even mean im retarded
         with open(f"{install_path}/dxvk/info.json", "w+") as f:
             json.dump(dxvk_info, f, indent=2)
 

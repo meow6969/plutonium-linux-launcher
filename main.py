@@ -1,11 +1,20 @@
 import os
 import json
 import shlex
-import time
 import pick
 
-import funcs
-import wine_prefix
+from utils import funcs, wine_prefix
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 
 class launcher:
@@ -36,17 +45,27 @@ class launcher:
         menu = "1) Start the Plutonium Launcher\n" \
                "2) Select a specific DXVK version\n" \
                "3) Select a specific Proton version\n" \
-               "4) Exit"
+               "4) Enter a command to be ran inside the WINEPREFIX\n" \
+               "5) Print current environment variables\n" \
+               "6) Exit"
         switch = {
             "1": self.run_game,
             "2": self.select_dxvk_version,
             "3": self.select_proton_version,
-            "4": exit
+            "4": self.enter_command,
+            "5": self.print_env_vars,
+            "6": exit
         }
+        # make sure no processes are running that might mess up plutonium in the custom proton wine
+        os.system(f"{self.prefix.ENV_VARS[28:]} wineserver -k")
+        os.system(f"wineserver -k")  # kills all processes running in the system wine
         while True:
             print(menu)
             choice = input("Enter a number for what you want to do\n")
-            switch[choice]()
+            try:
+                switch[choice]()
+            except KeyError:
+                pass
             print()
 
     @staticmethod
@@ -56,10 +75,13 @@ class launcher:
         trying = True
         while trying:
             print("It seems you are a new user, please create a wine prefix for plutonium")
-            print("If it asks you to install mono or gecko, don't")
+            print(f"{bcolors.BOLD}If it asks you to install mono or gecko, don't{bcolors.ENDC}")
             path = input(f"Where do you want to save the programs data? (default is {install_path})\n")
             if path.strip() == "":
-                break
+                continue
+            correct_path = input(f"Is {bcolors.OKGREEN}{install_path}{bcolors.ENDC} the correct directory? Y/N")
+            if correct_path.strip().lower() != "y":
+                continue
 
             # sanitize the input
             special_characters = "\'\"!@#$%^&*()+?=,<>\\"
@@ -91,7 +113,7 @@ class launcher:
         os.system(f"{self.prefix.ENV_VARS[28:]} wine64 {shlex.quote(f'{self.prefix.INSTALL_LOCATION}/plutonium.exe')}")
         # print(f"{self.prefix.ENV_VARS[28:]} wine64 --version")
         # os.system(f"{self.prefix.ENV_VARS} wine64 --version")
-        time.sleep(5)  # this is so the printed lines from the wineserver stopping don't interfere with the menu
+        os.system(f"{self.prefix.ENV_VARS[28:]} wineserver -w")  # this makes the process wait until the game has closed
 
     def select_dxvk_version(self):
         options = funcs.get_github_releases("https://api.github.com/repos/doitsujin/dxvk/releases?per_page=100",
@@ -105,7 +127,8 @@ class launcher:
     def select_proton_version(self):
         options = funcs.get_github_releases(
             "https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases?per_page=100",
-            self.prefix.CONFIG)
+            self.prefix.CONFIG
+        )
         options.insert(0, "Use native wine")  # allows the user to select their native wine version
         selection = list(pick.pick(options, "    Pick your desired Proton version", indicator="==>"))
         if selection[0] != "Use native wine":
@@ -113,10 +136,20 @@ class launcher:
                 selection[0] = selection[0][:-9]  # removes the (latest) at the end of its name
             if "installed" not in selection[0]:
                 self.prefix.download_proton(selection[0])
-            self.prefix.CONFIG = funcs.update_config(self.prefix.CONFIG, proton_version=f"Proton-{selection[0]}")
+            self.prefix.CONFIG = funcs.update_config(self.prefix.CONFIG, proton_version=f"{selection[0]}")
         else:
             self.prefix.CONFIG = funcs.update_config(self.prefix.CONFIG, proton_version=f"wine-native")
         self.prefix.ENV_VARS = self.prefix.set_env_vars()  # refreshes the self.prefix.ENV_VARS variable
+
+    def enter_command(self):
+        command = input("Enter your command\n")
+        print()
+        # the 28 characters sliced off here is the WINEDLLOVERRIDES="mscoree="
+        os.system(f"{self.prefix.ENV_VARS[28:]} {command}")
+        os.system(f"{self.prefix.ENV_VARS[28:]} wineserver -w")
+
+    def print_env_vars(self):
+        print(self.prefix.ENV_VARS)
 
 
 if __name__ == "__main__":

@@ -1,8 +1,9 @@
 import os
 import json
 import shlex
+import subprocess
 
-import funcs
+from utils import funcs
 
 
 class prefix:
@@ -13,7 +14,7 @@ class prefix:
             "install_location": os.path.expanduser("~/.local/share/linux-pluto"),
             "prefix_complete": "N",
             "dxvk_version": "latest",
-            "proton_version": "Proton-6.14-GE-2"  # Proton GE 6.14 is chosen here since it seems to work the best for me
+            "proton_version": "wine-native"
         }
 
         self.CONFIG = funcs.check_config(self.CONFIG, self.default_config)
@@ -55,8 +56,8 @@ class prefix:
             ### since there isn't DXVK in that folder or the DXVK is outdated we download the latest version
             self.download_dxvk("latest")
         version = dxvk_info["tag_name"]
-        os.system(f'{self.ENV_VARS} {shlex.quote(f"{self.INSTALL_LOCATION}/dxvk/dxvk-{version[1:]}/setup_dxvk.sh")}'
-                  f' install')
+
+        self.run_setup_dxvk(version)
 
     def setup_proton(self):
         print("\n\n\ninstalling Proton")
@@ -90,9 +91,8 @@ class prefix:
             # mark the setup script as executable
             os.system(f'chmod +x {shlex.quote(f"{self.INSTALL_LOCATION}/dxvk/dxvk-{version[1:]}/setup_dxvk.sh")}')
         # install DXVK to the wine prefix
-        os.system(f"{self.ENV_VARS} "
-                  f"{shlex.quote(f'{self.INSTALL_LOCATION}/dxvk/dxvk-{version[1:]}/setup_dxvk.sh')} "
-                  f"install > /dev/null")
+
+        self.run_setup_dxvk(version)
 
         # mark in the preferences.json file what version of DXVK to use
         self.CONFIG = funcs.update_config(self.CONFIG, dxvk_version=version)
@@ -117,19 +117,34 @@ class prefix:
                                 "/tmp/proton_tarball.tar.gz")
 
             print("Extracting and installing...")
-            os.system(f'tar xf /tmp/proton_tarball.tar.gz --directory {shlex.quote(f"{self.INSTALL_LOCATION}/proton")}')
+            os.system(f'mkdir -p {shlex.quote(f"{self.INSTALL_LOCATION}/proton/{version}")}')
+            os.system(f'tar xf /tmp/proton_tarball.tar.gz --strip-components=1 '
+                      f'--directory {shlex.quote(f"{self.INSTALL_LOCATION}/proton/{version}")}')
+
+    def run_setup_dxvk(self, version):
+        # newer versions of DXVK do not include the setup_dxvk.sh file
+        if not os.path.isfile(f"{self.INSTALL_LOCATION}/dxvk/dxvk-{version[1:]}/setup_dxvk.sh"):
+            os.system(f'cp ./utils/extras/setup_dxvk.sh '
+                      f'{shlex.quote(f"{self.INSTALL_LOCATION}/dxvk/dxvk-{version[1:]}/setup_dxvk.sh")}')
+        os.system(f"{self.ENV_VARS} "
+                  f"{shlex.quote(f'{self.INSTALL_LOCATION}/dxvk/dxvk-{version[1:]}/setup_dxvk.sh')} "
+                  f"install > /dev/null")
 
     def create_prefix(self):
         # install_path = os.path.expanduser(self.CONFIG["install_location"])
         # installing winetricks stuff
         print(f"Setting up a Plutonium prefix in {self.INSTALL_LOCATION}/prefix")
 
-        dependencies = ["--force dotnet48",
-                        "d3dcompiler_47 corefonts",
-                        "vcrun2005 vcrun2019 vcrun2008 vcrun2012",
-                        "d3dcompiler_43 d3dx11_42 d3dx11_43",
-                        "gfw msasn1 physx",
-                        "xact_x64 xact xinput"]
+        dependencies = ["--force dotnet48",                         # This line taken from pant's T6 Linux guide
+                        "d3dcompiler_47 corefonts",                 # This line taken from pant's T6 Linux guide
+                        "vcrun2005 vcrun2019 vcrun2008 vcrun2012",  # This line taken from pant's T6 Linux guide
+                        # "d3dcompiler_43 d3dx11_42 d3dx11_43",       # This line taken from pant's T6 Linux guide
+                        "d3dcompiler_43",
+                        "gfw msasn1 physx",                         # This line taken from pant's T6 Linux guide
+                        "xact_x64 xact xinput",                     # This line taken from pant's T6 Linux guide
+                        # "d3dx9 d3dx10 d3dcompiler_42"]              # This line created by me for T5
+                        "d3dcompiler_42"]
+
         print("Do not install mono or gecko")
         for dep in dependencies:
             return_code = os.system(f'{self.ENV_VARS} winetricks -q {dep}')
@@ -142,7 +157,7 @@ class prefix:
 
         # turns on the "Automatically capture the mouse in full-screen windows" option in winecfg
         # also reg is the name of a character in made in abyss and thats pretty cool
-        os.system(f'{self.ENV_VARS} wine regedit AutoCaptureMouse.reg')
+        os.system(f'{self.ENV_VARS} wine regedit ./utils/extras/AutoCaptureMouse.reg')
 
         if not os.path.exists(f"{self.INSTALL_LOCATION}/dxvk"):
             self.setup_dxvk()
