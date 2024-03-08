@@ -7,3 +7,8 @@ Automatically installs the Plutonium Launcher and manages a wineprefix for it.
 * Manages Proton version
 * Manages DXVK version
 * Entirely automated setup
+
+# Dependencies
+* WINE
+* Winetricks
+* Python 3
