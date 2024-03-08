@@ -63,6 +63,8 @@ class prefix:
 
         # make sure the proton folder exists
         os.system(f'mkdir -p {shlex.quote(f"{self.INSTALL_LOCATION}/proton")}')
+        if self.CONFIG['proton_version'] == "wine-native":
+            return
 
         # we don't keep Proton up-to-date because changing the Proton version has more of an effect than changing the
         # DXVK version
@@ -87,8 +89,7 @@ class prefix:
 
             print("Extracting and installing...")
             os.system(f'tar xf /tmp/dxvk_tarball.tar.gz --directory {shlex.quote(f"{self.INSTALL_LOCATION}/dxvk")}')
-            # mark the setup script as executable
-            os.system(f'chmod +x {shlex.quote(f"{self.INSTALL_LOCATION}/dxvk/dxvk-{version[1:]}/setup_dxvk.sh")}')
+
         # install DXVK to the wine prefix
 
         self.run_setup_dxvk(version)
@@ -125,6 +126,8 @@ class prefix:
         if not os.path.isfile(f"{self.INSTALL_LOCATION}/dxvk/dxvk-{version[1:]}/setup_dxvk.sh"):
             os.system(f'cp ./utils/extras/setup_dxvk.sh '
                       f'{shlex.quote(f"{self.INSTALL_LOCATION}/dxvk/dxvk-{version[1:]}/setup_dxvk.sh")}')
+        # mark the setup script as executable
+        os.system(f'chmod +x {shlex.quote(f"{self.INSTALL_LOCATION}/dxvk/dxvk-{version[1:]}/setup_dxvk.sh")}')
         os.system(f"{self.ENV_VARS} "
                   f"{shlex.quote(f'{self.INSTALL_LOCATION}/dxvk/dxvk-{version[1:]}/setup_dxvk.sh')} "
                   f"install > /dev/null")
@@ -133,6 +136,8 @@ class prefix:
         # install_path = os.path.expanduser(self.CONFIG["install_location"])
         # installing winetricks stuff
         print(f"Setting up a Plutonium prefix in {self.INSTALL_LOCATION}/prefix")
+        print("Installing/updating Winetricks")
+        funcs.check_winetricks()
 
         dependencies = ["--force dotnet48",                         # This line taken from pant's T6 Linux guide
                         "d3dcompiler_47 corefonts",                 # This line taken from pant's T6 Linux guide

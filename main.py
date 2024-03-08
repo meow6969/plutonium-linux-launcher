@@ -19,6 +19,10 @@ class bcolors:
 
 class launcher:
     def __init__(self):
+        if not os.path.isfile("/usr/bin/wine"):
+            print("Please install wine, then run this installer")
+            exit()
+
         # creates the preferences.json
         if not os.path.exists("preferences.json"):
             self.create_preferences()
@@ -76,10 +80,12 @@ class launcher:
         while trying:
             print("It seems you are a new user, please create a wine prefix for plutonium")
             print(f"{bcolors.BOLD}If it asks you to install mono or gecko, don't{bcolors.ENDC}")
-            path = input(f"Where do you want to save the programs data? (default is {install_path})\n")
+            path = input(f"Where do you want to save the programs data? (default is "
+                         f"{bcolors.OKGREEN}{install_path}{bcolors.ENDC})\n"
+                         f"Press enter to use the default installation path, or enter a custom one.")
             if path.strip() == "":
-                continue
-            correct_path = input(f"Is {bcolors.OKGREEN}{install_path}{bcolors.ENDC} the correct directory? Y/N")
+                path = install_path
+            correct_path = input(f"Is {bcolors.OKGREEN}{path}{bcolors.ENDC} the correct directory? Y/N ")
             if correct_path.strip().lower() != "y":
                 continue
 

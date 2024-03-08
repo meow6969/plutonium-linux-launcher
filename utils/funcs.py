@@ -86,3 +86,11 @@ def check_config(config, default_config):  # checks if the config file has every
             new_config[key] = config[key]
     update_config(new_config)
     return new_config
+
+def check_winetricks():
+    # this will install or update winetricks
+    if os.path.isfile("/usr/bin/apt"):  # user is running Debian or a derivative
+        os.system("sudo apt install winetricks")
+        os.system("sudo winetricks --self-update")
+    elif os.path.isfile("/usr/bin/pacman"):  # user is running the superior Arch Linux
+        os.system("sudo pacman -Sy winetricks")  # Arch Linux has the most up-to-date winetricks already B)
