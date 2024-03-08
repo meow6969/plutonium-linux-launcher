@@ -1,7 +1,6 @@
 import os
 import json
 import shlex
-import subprocess
 
 from utils import funcs
 
