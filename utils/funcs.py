@@ -90,7 +90,13 @@ def check_config(config, default_config):  # checks if the config file has every
 def check_winetricks():
     # this will install or update winetricks
     if os.path.isfile("/usr/bin/apt"):  # user is running Debian or a derivative
-        os.system("sudo apt install winetricks")
-        os.system("sudo winetricks --self-update")
+        if int(os.system("sudo apt install winetricks")) == 256:
+            print("Error with sudo, exiting...")
+            exit()
+        if int(os.system("sudo winetricks --self-update")) == 256:
+            print("Error with sudo, exiting...")
+            exit()
     elif os.path.isfile("/usr/bin/pacman"):  # user is running the superior Arch Linux
-        os.system("sudo pacman -Sy winetricks")  # Arch Linux has the most up-to-date winetricks already B)
+        if int(os.system("sudo pacman -Sy winetricks")) == 256:  # Arch Linux has the most up-to-date winetricks already B)
+            print("Error with sudo, exiting...")
+            exit()
