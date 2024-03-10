@@ -1,9 +1,0 @@
-[Desktop Entry]
-Name=Plutonium Linux Launcher
-Exec=bash start.sh
-Type=Application
-StartupNotify=true
-Comment=Play cool call of duty game
-Icon=./logo.png
-Categories=Game;
-Terminal=true

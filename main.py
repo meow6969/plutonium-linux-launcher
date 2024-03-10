@@ -20,6 +20,8 @@ class bcolors:
 class launcher:
     def __init__(self):
         if not os.path.isfile("/usr/bin/wine"):
+            # we don't try to install wine for the user as this process can be weird on different distros, for example
+            # arch linux requires enabling of multilib
             print("Please install wine, then run this installer")
             exit()
 
@@ -97,7 +99,7 @@ class launcher:
 
             path = os.path.realpath(os.path.expanduser(path))
             # print(path)
-            if int(os.system(f"mkdir -p {shlex.quote(path)} > /dev/null 2>&1")) == 0:  # if program has write perms
+            if int(os.system(f"mkdir -p {shlex.quote(path)} > /dev/null 2>&1")) == 0:
                 try:
                     if len(os.listdir(path)) == 0:
                         install_path = path
@@ -124,7 +126,7 @@ class launcher:
     def select_dxvk_version(self):
         options = funcs.get_github_releases("https://api.github.com/repos/doitsujin/dxvk/releases?per_page=100",
                                             self.prefix.CONFIG)
-        selection = list(pick.pick(options, "    Pick your desired DXVK version", indicator="==>"))
+        selection = list(pick.pick(options, "    Pick your desired DXVK version (UP/DOWN/ENTER)", indicator="==>"))
         if "latest" in selection[0]:
             selection[0] = "latest"
         if "installed" not in selection[0]:
@@ -136,7 +138,7 @@ class launcher:
             self.prefix.CONFIG
         )
         options.insert(0, "Use native wine")  # allows the user to select their native wine version
-        selection = list(pick.pick(options, "    Pick your desired Proton version", indicator="==>"))
+        selection = list(pick.pick(options, "    Pick your desired Proton version (UP/DOWN/ENTER)", indicator="==>"))
         if selection[0] != "Use native wine":
             if "(latest)" in selection[0]:
                 selection[0] = selection[0][:-9]  # removes the (latest) at the end of its name
